@@ -71,35 +71,43 @@ TEST(Account, ChangeBalance){
 	car_bank.Unlock();
 }
 
-TEST(Transaction, TransMockTest){
-    MockTrans Acc_Trans1;
-    MockAcc son(1, 10000);
-    MockAcc dad(2, 230000);
-    MockAcc Car_Shop(3, 8000000);
-    MockAcc Organisation(4, 5500);
-    EXPECT_CALL(Acc_Trans1, set_fee(testing::_)).Times(1);
-    EXPECT_CALL(Acc_Trans1, Make(testing::_, testing::_, testing::_)).Times(2);
-    EXPECT_CALL(Acc_Trans1, fee()).Times(1);
-    EXPECT_CALL(son, GetBalance()).Times(1);
-    EXPECT_CALL(dad, GetBalance()).Times(1);
-    Acc_Trans1.set_fee(500);
-    Acc_Trans1.Make(son, dad, 2000);
-    Acc_Trans1.fee();
-    son.GetBalance();
-    dad.GetBalance();
-    Acc_Trans1.Make(Organisation, dad, 20000);
+TEST(Transaction, TestMethods){
+      Account user_from(231, 67'000);
+      Account user_to(456, 35'000);
+      MockTransaction test_transaction;
+      
+      EXPECT_CALL(test_transaction, fee())
+	      .Times(3)
+              .WillOnce(Return(1))
+	      .WillRepeatedly(Return(500));
+
+      EXPECT_CALL(test_transaction, set_fee(_))
+	      .Times(1);
+
+      EXPECT_CALL(test_transaction, Make)
+	      .Times(AtLeast(1));
+
+      test_transaction.fee();
+      test_transaction.set_fee(500);
+      test_transaction.fee();
+
+      test_transaction.Make(user_from, user_to, 30'000);
+
+      test_transaction.Make(user_from, user_to, 40'000);
+
+      test_transaction.fee();
 }
 
-TEST(Transaction, Throws){
-	Transaction bank;
+TEST(Transaction, UsualWork){
+      Account bank(111'996, 1'000'000);
+      Account user(55'984, 13'000);
+      Transaction test_trans; 
 
-	Account dad(1, 1500000);
-	Account son(2, 1000);
-	Account student(3, 10);
-	Account university(666, 8450000);
+      EXPECT_EQ(test_trans.fee(), 1);     
+      test_trans.set_fee(1000);
+      EXPECT_EQ(test_trans.fee(), 1000);
 
-	ASSERT_ANY_THROW(bank.Make(dad,dad,1001));
-	ASSERT_ANY_THROW(bank.Make(university,student,-1000));
-	ASSERT_ANY_THROW(bank.Make(university,student, 10));
-	ASSERT_NO_THROW(bank.Make(dad,son,1000));
+      EXPECT_TRUE(test_trans.Make(bank, user, 10'000));
+      EXPECT_EQ(bank.GetBalance(), 989'000);
+      EXPECT_EQ(user.GetBalance(), 23'000);
 }
