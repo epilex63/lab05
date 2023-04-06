@@ -31,6 +31,6 @@ target_include_directories(
 
 target_link_libraries(
 	testBanking PRIVATE
-	gtest gtest_main banking
+	gtest gtest_main banking gmock_main
 )
 
