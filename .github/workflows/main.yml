@@ -1,0 +1,54 @@
+name: bank
+
+on:
+  push:
+    branches: main
+
+  workflow_dispatch:
+
+jobs:
+  build_lib:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build banking_lib
+        run: |
+          cd banking
+          mkdir built && cd built
+          cmake ..
+          cmake --build .
+          
+  Test_banking:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: prepare environment
+        run:  |
+              sudo apt install git && git submodule update --init
+              sudo apt install lcov
+              sudo apt install g++-7
+      
+      - name: Test
+        run: |
+          mkdir built && cd built
+          CXX=/usr/bin/g++-7 cmake -DCOVERAGE=1 ..
+          cmake --build .
+          ./testBanking
+          lcov -t "banking" -o lcov.info -c -d .
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel: true
+          path-to-lcov: ./built/lcov.info
+          coveralls-endpoint: https://coveralls.io
+
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
